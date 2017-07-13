@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # copy the adhost to /usr/bin at the first time,add a adhosts alias to ~/.bashrc,then remove this commands.
 echo "move adhosts to /usr/bin"
 sudo -S cp ./adhosts /usr/bin/
