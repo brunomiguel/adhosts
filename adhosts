@@ -1,18 +1,14 @@
 #!/bin/bash
-# copy the adhost to /usr/bin at the first time,add a adhosts alias to ~/.bashrc,then remove this commands.
-echo "move adhosts to /usr/bin"
-sudo -S cp ./adhosts /usr/bin/
-sudo -S sed -i '/adhost/d' /usr/bin/adhosts
 
 # hosts src
 url_list=(
-  "https://raw.githubusercontent.com/racaljk/hosts/master/hosts"
-  "https://adaway.org/hosts.txt"
-  "https://raw.githubusercontent.com/vokins/yhosts/master/hosts"
-  "https://raw.githubusercontent.com/sy618/hosts/master/p"
-  "https://raw.githubusercontent.com/sy618/hosts/master/y"
-  "https://raw.githubusercontent.com/neoFelhz/adhost/master/nadhost"
+  "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
+  "https://raw.githubusercontent.com/AdAway/adaway.github.io/master/hosts.txt"
+  "https://www.malwaredomainlist.com/hostslist/hosts.txt"
 )
+
+# reset /etc/hosts
+echo -e "127.0.0.1 localhost\n127.0.0.1 darkhole\n# The following lines are desirable for IPv6 capable hosts\n::1 ip6-localhost ip6-loopback\nfe00::0 ip6-localnet\nff00::0 ip6-mcastprefix\nff02::1 ip6-allnodes\nff02::2 ip6-allrouters\nff02::3 ip6-allhosts" > /tmp/defaulthosts
 
 # downloading hosts……
 echo "downloading hosts to /tmp"
@@ -20,19 +16,22 @@ echo "downloading hosts to /tmp"
 for((i=0;i<${#url_list[*]};++i))
 do
   url="${url_list[i]}"
-  echo "download hosts from" $url
+  echo "downloading hosts file from" $url
   curl -#C - -o /tmp/"$i" "$url"
 done
 
 # edit hosts file
 echo "edit hosts"
-sudo -S sed -i '/localhost/d' /tmp/1 /tmp/2 /tmp/5
-sudo -S sed -i '/ip6-localhost/d' /tmp/2
+sudo -S sed -i '/localhost/d' /tmp/0 /tmp/1 /tmp/2
+sudo -S sed -i '/ip6-localhost/d' /tmp/0 /tmp/1 /tmp/2
 
 echo "merge hosts"
-sudo -S cat /tmp/0 /tmp/1 /tmp/2 /tmp/3 /tmp/4 /tmp/5 >> /tmp/hosts
+sudo -S cat /tmp/defaulthosts /tmp/0 /tmp/1 /tmp/2 >> /tmp/hosts
 
 echo "copy hosts to /etc/hosts"
-sudo -S cp /tmp/0 /etc/hosts
+sudo -S cp /tmp/hosts /etc/hosts
 
-echo "OK!"
+echo "removing temp files"
+sudo -S rm -fv /tmp/defaulthosts /tmp/0 /tmp/1 /tmp/2 /tmp/hosts
+
+echo "Done!"
