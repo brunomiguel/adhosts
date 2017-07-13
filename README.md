@@ -3,3 +3,4 @@ Block ads using your /etc/hosts file. Includes a template to avoid loosing the d
 Dependencies:
 - bash
 - internet connection
+- curl
