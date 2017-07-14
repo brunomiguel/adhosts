@@ -27,6 +27,9 @@ done
 echo "edit hosts"
 sudo -S sed -i '/localhost/d' ${host_files[@]}
 sudo -S sed -i '/ip6-localhost/d' ${host_files[@]}
+sudo -S sed -i '/127.0.0.1 local/d' ${host_files[@]}
+sudo -S sed -i '/255.255.255.255 broadcasthost/d' ${host_files[@]}
+sudo -S sed -i '/0.0.0.0 0.0.0.0/d' ${host_files[@]}
 
 echo "merge hosts"
 sudo -S cat /tmp/defaulthosts ${host_files[@]} >> /tmp/hosts
