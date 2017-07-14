@@ -7,31 +7,34 @@ url_list=(
   "https://www.malwaredomainlist.com/hostslist/hosts.txt"
 )
 
+host_files=()
+
 # reset /etc/hosts
 echo -e "127.0.0.1 localhost\n127.0.0.1 darkhole\n# The following lines are desirable for IPv6 capable hosts\n::1 ip6-localhost ip6-loopback\nfe00::0 ip6-localnet\nff00::0 ip6-mcastprefix\nff02::1 ip6-allnodes\nff02::2 ip6-allrouters\nff02::3 ip6-allhosts" > /tmp/defaulthosts
 
 # downloading hosts……
 echo "downloading hosts to /tmp"
 
-for((i=0;i<${#url_list[*]};++i))
+for url in ${url_list[@]}
 do
-  url="${url_list[i]}"
-  echo "downloading hosts file from" $url
-  curl -#C - -o /tmp/"$i" "$url"
+  hostfile=$(mktemp /tmp/adhosts.XXXXX)
+  echo "downloading hosts file from $url to $hostfile"
+  curl -#C - -o $hostfile "$url"
+  host_files+=($hostfile)
 done
 
 # edit hosts file
 echo "edit hosts"
-sudo -S sed -i '/localhost/d' /tmp/0 /tmp/1 /tmp/2
-sudo -S sed -i '/ip6-localhost/d' /tmp/0 /tmp/1 /tmp/2
+sudo -S sed -i '/localhost/d' ${host_files[@]}
+sudo -S sed -i '/ip6-localhost/d' ${host_files[@]}
 
 echo "merge hosts"
-sudo -S cat /tmp/defaulthosts /tmp/0 /tmp/1 /tmp/2 >> /tmp/hosts
+sudo -S cat /tmp/defaulthosts ${host_files[@]} >> /tmp/hosts
 
 echo "copy hosts to /etc/hosts"
 sudo -S cp /tmp/hosts /etc/hosts
 
 echo "removing temp files"
-sudo -S rm -fv /tmp/defaulthosts /tmp/0 /tmp/1 /tmp/2 /tmp/hosts
+sudo -S rm -fv /tmp/defaulthosts ${host_files[@]} /tmp/hosts
 
 echo "Done!"
