@@ -1,43 +1,48 @@
-#!/bin/bash
+#!/bin/sh
+if [[ $USER != root ]]; then
+  echo "need root or sudo."
+  exit 0
+fi
+
+[[ $(which sudo 2>/dev/null) ]] || alias sudo=''
+
+# copy the script file to /usr/local/bin at the first time
+if [[ ! $(which adhosts) ]]; then
+  echo -e "\e[1m Install adhosts , and update hosts.安装adhosts并更新hosts。\e[0m"
+  sudo install -c $0 /usr/local/bin/adhosts
+fi
 
 # hosts src
 url_list=(
-  "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
-  "https://raw.githubusercontent.com/AdAway/adaway.github.io/master/hosts.txt"
-  "https://www.malwaredomainlist.com/hostslist/hosts.txt"
+  "https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts"
+  "https://adaway.org/hosts.txt"
+  "https://raw.githubusercontent.com/vokins/yhosts/master/hosts"
+  "https://cdn.jsdelivr.net/gh/neoFelhz/neohosts@gh-pages/full/hosts"
 )
 
-host_files=()
-
-# reset /etc/hosts
-echo -e "127.0.0.1 localhost\n127.0.0.1 darkhole\n# The following lines are desirable for IPv6 capable hosts\n::1 ip6-localhost ip6-loopback\nfe00::0 ip6-localnet\nff00::0 ip6-mcastprefix\nff02::1 ip6-allnodes\nff02::2 ip6-allrouters\nff02::3 ip6-allhosts" > /tmp/defaulthosts
-
-# downloading hosts……
-echo "downloading hosts to /tmp"
-
-for url in ${url_list[@]}
-do
-  hostfile=$(mktemp /tmp/adhosts.XXXXX)
-  echo "downloading hosts file from $url to $hostfile"
-  curl -#C - -o $hostfile "$url"
-  host_files+=($hostfile)
+# downloading hosts
+hosts_file=$(mktemp)
+for url in ${url_list[*]}; do
+  echo "-----"
+  echo "Download hosts from " $url "..."
+  curl -s $url >>$hosts_file
 done
 
-# edit hosts file
-echo "edit hosts"
-sudo -S sed -i '/localhost/d' ${host_files[@]}
-sudo -S sed -i '/ip6-localhost/d' ${host_files[@]}
-sudo -S sed -i '/127.0.0.1 local/d' ${host_files[@]}
-sudo -S sed -i '/255.255.255.255 broadcasthost/d' ${host_files[@]}
-sudo -S sed -i '/0.0.0.0 0.0.0.0/d' ${host_files[@]}
+# modify some content
+adhosts_start_tag='#adhosts_start_tag...All-lines-above-are-original-info.'
+adhosts_end_tag='#adhosts_end_tag...'
 
-echo "merge hosts"
-sudo -S cat /tmp/defaulthosts ${host_files[@]} >> /tmp/hosts
+sudo sed -i -e "1 i $adhosts_start_tag" \
+  -e "$ a $adhosts_end_tag" \
+  -e "/localhost/d" \
+  -e "/ip6-localhost/d" \
+  $hosts_file
 
-echo "copy hosts to /etc/hosts"
-sudo -S cp /tmp/hosts /etc/hosts
+# delete old adhosts info
+sudo sed -i "/$adhosts_start_tag/,/$adhosts_end_tag/ d" /etc/hosts
 
-echo "removing temp files"
-sudo -S rm -fv /tmp/defaulthosts ${host_files[@]} /tmp/hosts
+# # copy /tmp/hosts to /etc/hosts
+[[ -s $hosts_file ]] && sudo cat $hosts_file >>/etc/hosts
 
-echo "Done!"
+echo -e "OK!Some ads will be blocked!更新成功！你可以科学上网。可能需要使用https访问，例如\e[1;35m https://www.google.com/ \e[0m访问Google。"
+echo -e "Next time , execute this command \e[1madhosts\e[0m for updating.下次执行adhosts这条命令进行更新。"
