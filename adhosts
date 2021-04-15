@@ -14,10 +14,8 @@ fi
 
 # hosts src
 url_list=(
-  "https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts"
   "https://adaway.org/hosts.txt"
-  "https://raw.githubusercontent.com/vokins/yhosts/master/hosts"
-  "https://cdn.jsdelivr.net/gh/neoFelhz/neohosts@gh-pages/full/hosts"
+  "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
 )
 
 # downloading hosts
@@ -44,5 +42,5 @@ sudo sed -i "/$adhosts_start_tag/,/$adhosts_end_tag/ d" /etc/hosts
 # # copy /tmp/hosts to /etc/hosts
 [[ -s $hosts_file ]] && sudo cat $hosts_file >>/etc/hosts
 
-echo -e "OK!Some ads will be blocked!更新成功！你可以科学上网。可能需要使用https访问，例如\e[1;35m https://www.google.com/ \e[0m访问Google。"
-echo -e "Next time , execute this command \e[1madhosts\e[0m for updating.下次执行adhosts这条命令进行更新。"
+echo -e "OK!Some ads will be blocked!"
+echo -e "Next time , execute this command \e[1madhosts\e[0m for updating."
